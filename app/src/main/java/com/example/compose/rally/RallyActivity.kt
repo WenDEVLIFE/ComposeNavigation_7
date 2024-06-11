@@ -82,57 +82,16 @@ fun RallyApp() {
             }
         ) { innerPadding ->
 
-            // rally nav host
-            NavHost(
+            // rally nav host with nav controller
+            RallyNavHost(
                 navController = navController,
-                startDestination = Overview.route,
                 modifier = Modifier.padding(innerPadding)
-            ) {
-
-                // rally nav host screens
-                composable(route = Overview.route) {
-                    OverviewScreen(
-                        onAccountClick = { accountType ->
-                            navController.navigateToSingleAccount(accountType)
-                        }
-                    )
-                }
-
-                // rally nav host screens
-                composable(route = Accounts.route) {
-                    AccountsScreen(
-                        onAccountClick = { accountType ->
-                            navController.navigateToSingleAccount(accountType)
-                        }
-                    )
-                }
-
-                // rally nav host screens
-                composable(route = Bills.route) {
-                    BillsScreen()
-                }
-
-                // rally nav host screens
-                composable(
-                    route = SingleAccount.routeWithArgs,
-                    arguments = SingleAccount.arguments,
-                    deepLinks = listOf(navDeepLink {
-                        uriPattern =
-                            "rally://${SingleAccount.route}/{${SingleAccount.accountTypeArg}}"
-                    })
-                ) { navBackStackEntry ->
-
-                    // rally nav host screens
-                    val accountType =
-                        navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
-                    SingleAccountScreen(accountType)
-                }
-            }
+            )
         }
     }
 }
 
-// Rally screens and their routes
+/* Rally screens and their routes
 private fun NavHostController.navigateToSingleAccount(accountType: String) {
     this.navigate("single_account/$accountType")
 }
@@ -155,4 +114,69 @@ fun NavHostController.navigateSingleTopTo(route: String) =
 
         // Restore the state when popping back
         restoreState = true
+    }  */
+
+@Composable
+
+// Rally nav host
+fun RallyNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier
+) {
+    NavHost(
+        navController = navController,
+        startDestination = Overview.route,
+        modifier = modifier
+    ) {
+
+        // Rally screens
+        composable(route = Overview.route) {
+            OverviewScreen(
+                onClickSeeAllAccounts = {
+                    navController.navigateSingleTopTo(Accounts.route)
+                },
+                onClickSeeAllBills = {
+                    navController.navigateSingleTopTo(Bills.route)
+                },
+                onAccountClick = { accountType ->
+                    navController.navigateToSingleAccount(accountType)
+                }
+            )
+        }
+
+        // Accounts screen
+        composable(route = Accounts.route) {
+            AccountsScreen(
+                onAccountClick = { accountType ->
+                    navController.navigateToSingleAccount(accountType)
+                }
+            )
+        }
+
+        // Bills screen
+        composable(route = Bills.route) {
+            BillsScreen()
+        }
+
+        // Single account screen
+        composable(
+            route = SingleAccount.routeWithArgs,
+            arguments = SingleAccount.arguments,
+            deepLinks = SingleAccount.deepLinks
+        ) { navBackStackEntry ->
+            val accountType =
+                navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
+            SingleAccountScreen(accountType)
+        }
     }
+}
+
+// Rally tab row screens and their routes
+fun NavHostController.navigateSingleTopTo(route: String) =
+    this.navigate(route) { launchSingleTop = true }
+
+
+// Rally tab row screens and their routes
+private fun NavHostController.navigateToSingleAccount(accountType: String) {
+    this.navigateSingleTopTo("${SingleAccount.route}/$accountType")
+}

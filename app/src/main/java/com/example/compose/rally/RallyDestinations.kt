@@ -72,6 +72,8 @@ object SingleAccount : RallyDestination {
     val arguments = listOf(
         navArgument(accountTypeArg) { type = NavType.StringType }
     )
+
+    // Deep link to navigate to a specific account
     val deepLinks = listOf(
         navDeepLink { uriPattern = "rally://$route/{$accountTypeArg}"}
     )
