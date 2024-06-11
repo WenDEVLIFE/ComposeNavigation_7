@@ -28,11 +28,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.compose.rally.ui.components.RallyTabRow
 import com.example.compose.rally.ui.theme.RallyTheme
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 /**
  * This Activity recreates part of the Rally Material Study from
@@ -50,14 +53,32 @@ class RallyActivity : ComponentActivity() {
 @Composable
 fun RallyApp() {
     RallyTheme {
-        var currentScreen: RallyDestination by remember { mutableStateOf(Overview) }
+
+        // our controller
         val navController = rememberNavController()
+
+        //  use currentBackStackEntryAsState to get the current back stack
+        val currentBackStack by navController.currentBackStackEntryAsState()
+
+        // Create a list of screens to be displayed in the tab row
+        val currentDestination = currentBackStack?.destination
+
+        // Change the variable to this and use Overview as a backup screen if this returns null
+        val currentScreen = rallyTabRowScreens.find { it.route == currentDestination?.route } ?: Overview
         Scaffold(
             topBar = {
                 RallyTabRow(
+
+                    // Pass in all the screens
                     allScreens = rallyTabRowScreens,
-                    onTabSelected = { screen -> currentScreen = screen },
-                    currentScreen = currentScreen
+                    onTabSelected = { newScreen ->
+
+                        // Navigate to the new screen when a tab is selected
+                        navController.navigateSingleTopTo(newScreen.route)
+                    },
+
+                    // Set the current screen to the screen that is selected
+                    currentScreen = currentScreen,
                 )
             }
         ) { innerPadding ->
@@ -66,12 +87,18 @@ fun RallyApp() {
                 startDestination = Overview.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
+
+                // Go to overview screen
                 composable(route = Overview.route) {
                     Overview.screen()
                 }
+
+                // Go to accounts screen
                 composable(route = Accounts.route) {
                     Accounts.screen()
                 }
+
+                // Go to bills screen
                 composable(route = Bills.route) {
                     Bills.screen()
                 }
@@ -79,4 +106,25 @@ fun RallyApp() {
             }
 
     }
+
 }
+
+// Extension function to navigate to a route with single top
+fun NavHostController.navigateSingleTopTo(route: String) =
+    this.navigate(route) {
+        popUpTo(
+
+            // Pop up to the start destination
+            this@navigateSingleTopTo.graph.findStartDestination().id
+        ) {
+
+            // Save the state when popping up
+            saveState = true
+        }
+
+        // Launch as single top
+        launchSingleTop = true
+
+        // Restore the state when popping back
+        restoreState = true
+    }
