@@ -36,6 +36,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navDeepLink
 import com.example.compose.rally.ui.accounts.AccountsScreen
 import com.example.compose.rally.ui.bills.BillsScreen
 import com.example.compose.rally.ui.overview.OverviewScreen
@@ -114,9 +115,16 @@ fun RallyApp() {
                 // rally nav host screens
                 composable(
                     route = SingleAccount.routeWithArgs,
-                    arguments = SingleAccount.arguments
+                    arguments = SingleAccount.arguments,
+                    deepLinks = listOf(navDeepLink {
+                        uriPattern =
+                            "rally://${SingleAccount.route}/{${SingleAccount.accountTypeArg}}"
+                    })
                 ) { navBackStackEntry ->
-                    val accountType = navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
+
+                    // rally nav host screens
+                    val accountType =
+                        navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
                     SingleAccountScreen(accountType)
                 }
             }
