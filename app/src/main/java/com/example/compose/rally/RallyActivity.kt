@@ -36,7 +36,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-
+import com.example.compose.rally.ui.accounts.AccountsScreen
+import com.example.compose.rally.ui.bills.BillsScreen
+import com.example.compose.rally.ui.overview.OverviewScreen
+import com.example.compose.rally.ui.accounts.SingleAccountScreen
 /**
  * This Activity recreates part of the Rally Material Study from
  * https://material.io/design/material-studies/rally.html
@@ -54,59 +57,76 @@ class RallyActivity : ComponentActivity() {
 fun RallyApp() {
     RallyTheme {
 
-        // our controller
+        // nav controller
         val navController = rememberNavController()
 
-        //  use currentBackStackEntryAsState to get the current back stack
+        // rally tab row screens
         val currentBackStack by navController.currentBackStackEntryAsState()
 
-        // Create a list of screens to be displayed in the tab row
+        // get the current destination
         val currentDestination = currentBackStack?.destination
 
-        // Change the variable to this and use Overview as a backup screen if this returns null
+        // rally tab row screens
         val currentScreen = rallyTabRowScreens.find { it.route == currentDestination?.route } ?: Overview
+
         Scaffold(
             topBar = {
                 RallyTabRow(
-
-                    // Pass in all the screens
                     allScreens = rallyTabRowScreens,
                     onTabSelected = { newScreen ->
-
-                        // Navigate to the new screen when a tab is selected
                         navController.navigateSingleTopTo(newScreen.route)
                     },
-
-                    // Set the current screen to the screen that is selected
                     currentScreen = currentScreen,
                 )
             }
         ) { innerPadding ->
+
+            // rally nav host
             NavHost(
                 navController = navController,
                 startDestination = Overview.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
 
-                // Go to overview screen
+                // rally nav host screens
                 composable(route = Overview.route) {
-                    Overview.screen()
+                    OverviewScreen(
+                        onAccountClick = { accountType ->
+                            navController.navigateToSingleAccount(accountType)
+                        }
+                    )
                 }
 
-                // Go to accounts screen
+                // rally nav host screens
                 composable(route = Accounts.route) {
-                    Accounts.screen()
+                    AccountsScreen(
+                        onAccountClick = { accountType ->
+                            navController.navigateToSingleAccount(accountType)
+                        }
+                    )
                 }
 
-                // Go to bills screen
+                // rally nav host screens
                 composable(route = Bills.route) {
-                    Bills.screen()
+                    BillsScreen()
+                }
+
+                // rally nav host screens
+                composable(
+                    route = SingleAccount.routeWithArgs,
+                    arguments = SingleAccount.arguments
+                ) { navBackStackEntry ->
+                    val accountType = navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
+                    SingleAccountScreen(accountType)
                 }
             }
-            }
-
+        }
     }
+}
 
+// Rally screens and their routes
+private fun NavHostController.navigateToSingleAccount(accountType: String) {
+    this.navigate("single_account/$accountType")
 }
 
 // Extension function to navigate to a route with single top
